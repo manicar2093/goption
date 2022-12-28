@@ -54,10 +54,14 @@ func (c Optional[T]) OrElse(other T) T {
 }
 
 func checkIsNil[T any](value T) bool {
-	kind := reflect.TypeOf(value).Kind()
+	typeOfValue := reflect.TypeOf(value)
+	if typeOfValue == nil {
+		return true
+	}
+	kind := typeOfValue.Kind()
 	val := reflect.ValueOf(value)
 	if kind == reflect.Pointer {
 		return val.IsNil()
 	}
-	return false
+	return val.IsZero()
 }
