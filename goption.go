@@ -9,23 +9,23 @@ var (
 	ErrNoSuchElement = errors.New("no value in this optional")
 )
 
-type Goptional[T any] struct {
+type Optional[T any] struct {
 	value      T
 	isValueNil bool
 }
 
 // Empty returns an empty Optional instance.
-func Empty[T any]() Goptional[T] {
-	return Goptional[T]{isValueNil: true}
+func Empty[T any]() Optional[T] {
+	return Optional[T]{isValueNil: true}
 }
 
 // Of returns an Optional with the specified present value. It does not matters if value is nil
-func Of[T any](value T) Goptional[T] {
-	return Goptional[T]{value: value, isValueNil: checkIsNil(value)}
+func Of[T any](value T) Optional[T] {
+	return Optional[T]{value: value, isValueNil: checkIsNil(value)}
 }
 
 // Get when a value is present returns the value, otherwise throws ErrNoSuchElement.
-func (c Goptional[T]) Get() (T, error) {
+func (c Optional[T]) Get() (T, error) {
 	if c.isValueNil {
 		return c.value, ErrNoSuchElement
 	}
@@ -33,12 +33,12 @@ func (c Goptional[T]) Get() (T, error) {
 }
 
 // IsPresent returns true if there is a value present, otherwise false.
-func (c Goptional[T]) IsPresent() bool {
+func (c Optional[T]) IsPresent() bool {
 	return !c.isValueNil
 }
 
 // OrElseError return the contained value, if present, otherwise returns the given error.
-func (c Goptional[T]) OrElseError(err error) (T, error) {
+func (c Optional[T]) OrElseError(err error) (T, error) {
 	if c.isValueNil {
 		return c.value, err
 	}
@@ -46,7 +46,7 @@ func (c Goptional[T]) OrElseError(err error) (T, error) {
 }
 
 // OrElse returns the value if present, otherwise return other.
-func (c Goptional[T]) OrElse(other T) T {
+func (c Optional[T]) OrElse(other T) T {
 	if c.isValueNil {
 		return other
 	}
