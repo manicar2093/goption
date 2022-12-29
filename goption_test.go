@@ -73,6 +73,7 @@ var _ = Describe("Goption", func() {
 			Entry("filled string", "full string", true),
 			Entry("empty int", int(0), false),
 			Entry("filled int", int(1), true),
+			Entry("empty optional", goption.Optional[string]{}, false),
 		)
 	})
 

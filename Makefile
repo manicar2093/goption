@@ -1,2 +1,2 @@
 test:
-	@ ginkgo -v
+	@ ginkgo -v ./...
