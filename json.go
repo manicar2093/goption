@@ -2,18 +2,24 @@ package goption
 
 import (
 	"encoding/json"
-	"log"
+	"reflect"
 )
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
-	log.Println(string(data) == `"null"`, string(data), "null")
 	if string(data) == `"null"` {
-		c.isValueNil = true
+		c.isValidValue = false
 		return nil
 	}
-	c.isValueNil = len(data) <= 0
+	c.isValidValue = len(data) > 0
 	if err := json.Unmarshal(data, &c.value); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c Optional[T]) MarshalJSON() ([]byte, error) {
+	if reflect.ValueOf(c.value).IsZero() {
+		return []byte("null"), nil
+	}
+	return json.Marshal(c.value)
 }

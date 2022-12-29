@@ -21,16 +21,16 @@ import "database/sql/driver"
 // and should not be retained. Their underlying memory is owned by the driver.
 // If retention is necessary, copy their values before the next call to Scan.
 func (c *Optional[T]) Scan(src any) error {
-	isSrcNil := checkIsNil(src)
-	c.isValueNil = isSrcNil
-	if !isSrcNil {
+	isSrcValid := isValidData(src)
+	c.isValidValue = isSrcValid
+	if isSrcValid {
 		c.value = src.(T)
 	}
 	return nil
 }
 
 func (c Optional[T]) Value() (driver.Value, error) {
-	if c.isValueNil {
+	if c.isValidValue {
 		return nil, nil
 	}
 	return c.value, nil
