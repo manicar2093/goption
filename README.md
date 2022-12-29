@@ -2,9 +2,7 @@
 
 ![goption](goption.png "Goption")
 
-__On development__
-
-A way to handle nil
+A way to handle nil values.
 
 ## Description
 
@@ -16,6 +14,12 @@ This is a copy of [Java Optional](https://docs.oracle.com/javase/8/docs/api/java
 - Goptional.IsPresent
 - Goptional.OrElseError
 - Goptional.OrElse
+
+__Consider to use Go 1.18+. Goption uses Generics.__
+
+## SQL
+
+You can use goption.Optional to sql package. Optional implements sql.Scanner and sql.Valuer
 
 ## JSON Marshall
 

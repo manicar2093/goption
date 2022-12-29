@@ -3,6 +3,7 @@ module github.com/manicar2093/goption
 go 1.18
 
 require (
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/onsi/ginkgo/v2 v2.6.1
 	github.com/onsi/gomega v1.24.2
 )

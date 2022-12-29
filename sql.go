@@ -30,7 +30,7 @@ func (c *Optional[T]) Scan(src any) error {
 }
 
 func (c Optional[T]) Value() (driver.Value, error) {
-	if c.isValidValue {
+	if !c.isValidValue {
 		return nil, nil
 	}
 	return c.value, nil
