@@ -53,6 +53,14 @@ func (c Optional[T]) OrElse(other T) T {
 	return c.value
 }
 
+func (c Optional[T]) MustGet() T {
+	val, err := c.Get()
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
 func isValidData[T any](value T) bool {
 	typeOfValue := reflect.TypeOf(value)
 	if typeOfValue == nil {
