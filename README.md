@@ -4,18 +4,24 @@
 
 A way to handle nil values.
 
+## Requirements
+
+Use Go 1.18+ is a must. Goption uses Generics.
+
 ## Description
 
 This is a copy of [Java Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html). It contains almost all functions
 
 - Empty
 - Of
-- Goptional.Get
-- Goptional.IsPresent
-- Goptional.OrElseError
-- Goptional.OrElse
+- Optional.Get
+- Optional.IsPresent
+- Optional.OrElseError
+- Optional.OrElse
 
-__Consider to use Go 1.18+. Goption uses Generics.__
+And others made specifically to go:
+
+- Optional.MustGet
 
 ## SQL
 
