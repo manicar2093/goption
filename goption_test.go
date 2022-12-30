@@ -160,4 +160,29 @@ var _ = Describe("Goption", func() {
 			})
 		})
 	})
+
+	Describe("MustGet", func() {
+		When("optional has no data", func() {
+			It("panics with ErrNoSuchElement", func() {
+				var opt = goption.Empty[string]()
+
+				Expect(func() {
+					opt.MustGet()
+				}).To(PanicWith(goption.ErrNoSuchElement))
+			})
+		})
+
+		When("optional has valid data", func() {
+			It("returns it", func() {
+
+				var (
+					expectedValue = "expectedValue"
+					opt           = goption.Of(expectedValue)
+				)
+
+				Expect(opt.MustGet()).To(Equal(expectedValue))
+			})
+		})
+	})
+
 })
