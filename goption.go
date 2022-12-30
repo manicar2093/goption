@@ -53,6 +53,7 @@ func (c Optional[T]) OrElse(other T) T {
 	return c.value
 }
 
+// MustGet retrieves only a valid value. If is not present it panics with ErrNoSuchElement
 func (c Optional[T]) MustGet() T {
 	val, err := c.Get()
 	if err != nil {
