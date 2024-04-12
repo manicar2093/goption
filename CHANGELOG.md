@@ -1,3 +1,14 @@
+## v0.4.0 (2024-04-12)
+
+### Feat
+
+- add echo binder implementation
+
+### Fix
+
+- add echo binder
+- add echo binder
+
 ## v0.3.1 (2023-05-02)
 
 ### Perf
