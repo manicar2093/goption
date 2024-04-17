@@ -1,3 +1,9 @@
+## v0.6.0 (2024-04-17)
+
+### Feat
+
+- add slices cases detecting if they are empty
+
 ## v0.5.0 (2024-04-12)
 
 ### Feat
