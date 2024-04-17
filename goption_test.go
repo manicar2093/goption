@@ -74,6 +74,8 @@ var _ = Describe("Goption", func() {
 			Entry("empty int", int(0), false),
 			Entry("filled int", int(1), true),
 			Entry("empty optional", goption.Optional[string]{}, false),
+			Entry("empty slice", []string{}, false),
+			Entry("empty slice of pointers", []*string{}, false),
 		)
 	})
 
