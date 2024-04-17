@@ -69,8 +69,13 @@ func isValidData[T any](value T) bool {
 	}
 	kind := typeOfValue.Kind()
 	val := reflect.ValueOf(value)
-	if kind == reflect.Pointer {
+
+	switch kind {
+	case reflect.Pointer:
 		return !val.IsNil()
+	case reflect.Slice:
+		return val.Len() != 0
+	default:
+		return !val.IsZero()
 	}
-	return !val.IsZero()
 }
