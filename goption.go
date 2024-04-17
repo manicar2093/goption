@@ -32,7 +32,7 @@ func (c Optional[T]) Get() (T, error) {
 	return c.value, nil
 }
 
-// IsPresent returns true if there is a value present, otherwise false.
+// IsPresent returns true if there is a value present, otherwise false. It recognizes an empty slice as not present so it returns false
 func (c Optional[T]) IsPresent() bool {
 	return c.isValidValue
 }
