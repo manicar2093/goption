@@ -14,8 +14,7 @@ func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 	if unquoted == "null" {
 		unquoted = ""
 	}
-	_, isValid := isValidData(unquoted)
-	c.isValidValue = isValid
+	c.isValidValue = getIsValidDataBool(unquoted)
 	if err := json.Unmarshal(data, &c.value); err != nil {
 		return err
 	}
