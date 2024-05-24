@@ -3,14 +3,18 @@ package goption
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
 )
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
-	if string(data) == `"null"` {
-		c.isValidValue = false
-		return nil
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
 	}
-	c.isValidValue = len(data) > 0
+	if unquoted == "null" {
+		unquoted = ""
+	}
+	c.isValidValue = getIsValidDataBool(unquoted)
 	if err := json.Unmarshal(data, &c.value); err != nil {
 		return err
 	}

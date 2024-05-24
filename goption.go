@@ -21,8 +21,7 @@ func Empty[T any]() Optional[T] {
 
 // Of returns an Optional with the specified present value. It does not matters if value is nil
 func Of[T any](value T) Optional[T] {
-	_, isValid := isValidData(value)
-	return Optional[T]{value: value, isValidValue: isValid}
+	return Optional[T]{value: value, isValidValue: getIsValidDataBool(value)}
 }
 
 // Get when a value is present returns the value, otherwise throws ErrNoSuchElement.
@@ -79,4 +78,9 @@ func isValidData[T any](value T) (reflect.Value, bool) {
 	default:
 		return val, !val.IsZero()
 	}
+}
+
+func getIsValidDataBool[T any](value T) bool {
+	_, is := isValidData(value)
+	return is
 }
