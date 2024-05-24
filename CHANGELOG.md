@@ -1,3 +1,14 @@
+## v0.8.0 (2024-05-24)
+
+### Feat
+
+- add util func to get bool from isValidData func
+- change way to handle null on unmarshall json
+
+### Fix
+
+- add recognition of empty string in unmarshall json
+
 ## v0.7.0 (2024-05-24)
 
 ### Feat
