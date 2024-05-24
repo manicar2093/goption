@@ -133,6 +133,17 @@ var _ = Describe("Sql", func() {
 				Expect(opt.IsPresent()).To(BeFalse())
 			})
 		})
+
+		When("has a custom type", func() {
+			It("assign it by its type", func() {
+				type Money int
+
+				opt := goption.Empty[Money]()
+
+				Expect(opt.Scan(400)).To(Succeed())
+				Expect(opt.IsPresent()).To(BeTrue())
+			})
+		})
 	})
 
 	Describe("Value", func() {
