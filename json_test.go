@@ -46,6 +46,19 @@ var _ = Describe("Json", func() {
 				Expect(holder.IsPresent()).To(BeFalse())
 			})
 		})
+
+		When("is zero", func() {
+			It("creates an empty optional", func() {
+				var (
+					jsonData = []byte(`""`)
+					holder   = goption.Empty[string]()
+				)
+				err := holder.UnmarshalJSON(jsonData)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(holder.IsPresent()).To(BeFalse())
+			})
+		})
 	})
 
 	Describe("MarshalJson", func() {

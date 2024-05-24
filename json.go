@@ -6,7 +6,8 @@ import (
 )
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
-	if string(data) == `"null"` {
+	asString := string(data)
+	if asString == `"null"` || asString == `""` {
 		c.isValidValue = false
 		return nil
 	}
