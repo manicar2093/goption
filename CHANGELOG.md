@@ -1,3 +1,9 @@
+## v0.7.0 (2024-05-24)
+
+### Feat
+
+- add new way to assign values on sql scan
+
 ## v0.6.0 (2024-04-17)
 
 ### Feat
