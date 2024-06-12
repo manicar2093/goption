@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func (cb *Optional[T]) UnmarshalText(text []byte) error {
-	return cb.UnmarshalJSON([]byte(fmt.Sprintf("\"%s\"", text)))
+func (c *Optional[T]) UnmarshalText(text []byte) error {
+	return c.UnmarshalJSON([]byte(fmt.Sprintf("\"%s\"", text)))
 
 }
