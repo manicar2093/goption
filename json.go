@@ -4,17 +4,24 @@ import (
 	"encoding/json"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
+	var (
+		err      error
+		asString = string(data)
+	)
+	if strings.HasPrefix(asString, "\"") {
+		asString, err = strconv.Unquote(asString)
+		if err != nil {
+			return err
+		}
 	}
-	if unquoted == "null" {
-		unquoted = ""
+	if asString == "null" {
+		asString = ""
 	}
-	c.isValidValue = getIsValidDataBool(unquoted)
+	c.isValidValue = getIsValidDataBool(asString)
 	if err := json.Unmarshal(data, &c.value); err != nil {
 		return err
 	}

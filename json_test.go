@@ -35,16 +35,19 @@ var _ = Describe("Json", func() {
 		})
 
 		When("is as null", func() {
-			It("creates an empty optional", func() {
+			DescribeTable("creates an empty optional", func(jsonData []byte) {
 				var (
-					jsonData = []byte(`"null"`)
-					holder   = goption.Empty[string]()
+					holder = goption.Empty[string]()
 				)
 				err := holder.UnmarshalJSON(jsonData)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(holder.IsPresent()).To(BeFalse())
-			})
+			},
+				Entry("null as string", []byte(`"null"`)),
+				Entry("native null", []byte(`null`)),
+			)
+
 		})
 
 		When("is zero", func() {
