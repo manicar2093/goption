@@ -1,3 +1,9 @@
+## v0.8.1 (2024-06-12)
+
+### Fix
+
+- add native null to be handle in a proper way
+
 ## v0.8.0 (2024-05-24)
 
 ### Feat
