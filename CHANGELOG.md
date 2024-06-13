@@ -1,3 +1,9 @@
+## v0.8.2 (2024-06-13)
+
+### Fix
+
+- add support for custom types
+
 ## v0.8.1 (2024-06-12)
 
 ### Fix
