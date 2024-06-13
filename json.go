@@ -22,9 +22,12 @@ func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 		asString = ""
 	}
 	c.isValidValue = getIsValidDataBool(asString)
-	if err := json.Unmarshal(data, &c.value); err != nil {
-		return err
+	if c.isValidValue {
+		if err := json.Unmarshal(data, &c.value); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
