@@ -3,6 +3,7 @@ package goption_test
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/manicar2093/goption"
 	. "github.com/onsi/ginkgo/v2"
@@ -47,6 +48,17 @@ var _ = Describe("Json", func() {
 				Entry("null as string", []byte(`"null"`)),
 				Entry("native null", []byte(`null`)),
 			)
+
+			It("handles custom types", func() {
+				type testType time.Time
+				var (
+					holder = goption.Empty[testType]()
+				)
+				err := holder.UnmarshalJSON([]byte(`"null"`))
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(holder.IsPresent()).To(BeFalse())
+			})
 
 		})
 
