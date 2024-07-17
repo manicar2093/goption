@@ -2,6 +2,7 @@ package goption
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -9,21 +10,31 @@ import (
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 	var (
-		err      error
-		asString = string(data)
-	)
-	if strings.HasPrefix(asString, "\"") {
-		asString, err = strconv.Unquote(asString)
-		if err != nil {
-			return err
+		valuer struct {
+			Value string `json:"value"`
 		}
+		asJsonString = strings.ReplaceAll(
+			fmt.Sprintf(`{"value": %s}`, data),
+			"\n",
+			"\\n",
+		)
+		asJsonBytes = []byte(asJsonString)
+	)
+
+	if err := json.Unmarshal(asJsonBytes, &valuer); err != nil {
+		return err
 	}
-	if asString == "null" {
-		asString = ""
+
+	if valuer.Value == "null" {
+		valuer.Value = ""
 	}
-	c.isValidValue = getIsValidDataBool(asString)
+
+	c.isValidValue = getIsValidDataBool(valuer.Value)
 	if c.isValidValue {
-		if err := json.Unmarshal(data, &c.value); err != nil {
+		if err := json.Unmarshal(
+			[]byte(strconv.Quote(valuer.Value)),
+			&c.value,
+		); err != nil {
 			return err
 		}
 	}

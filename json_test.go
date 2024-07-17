@@ -20,10 +20,9 @@ var _ = Describe("Json", func() {
 
 	Describe("UnmarshalJSON", func() {
 
-		It("generates optional from json string", func() {
+		DescribeTable("generates optional from json string", func(expectedNameData string) {
 			var (
-				expectedNameData = "a name"
-				jsonData         = []byte(fmt.Sprintf(
+				jsonData = []byte(fmt.Sprintf(
 					`"%v"`,
 					expectedNameData,
 				))
@@ -33,7 +32,14 @@ var _ = Describe("Json", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.Get()).To(Equal(expectedNameData))
-		})
+		},
+			Entry("one line string", "a name"),
+			Entry("multiline strings", `a name
+a name
+a name
+
+a name`),
+		)
 
 		When("is as null", func() {
 			DescribeTable("creates an empty optional", func(jsonData []byte) {
