@@ -1,3 +1,9 @@
+## v0.8.3 (2024-07-17)
+
+### Fix
+
+- add handling multiline's strings to be unmarshal
+
 ## v0.8.2 (2024-06-13)
 
 ### Fix
