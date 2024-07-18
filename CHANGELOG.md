@@ -1,3 +1,9 @@
+## v0.8.4 (2024-07-18)
+
+### Fix
+
+- add handling multiline's strings \r carriage return
+
 ## v0.8.3 (2024-07-17)
 
 ### Fix
