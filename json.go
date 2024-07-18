@@ -13,13 +13,17 @@ func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 		valuer struct {
 			Value string `json:"value"`
 		}
-		asJsonString = strings.ReplaceAll(
+	)
+	asJsonString := strings.ReplaceAll(
+		strings.ReplaceAll(
 			fmt.Sprintf(`{"value": %s}`, data),
 			"\n",
 			"\\n",
-		)
-		asJsonBytes = []byte(asJsonString)
+		),
+		"\r",
+		"\\r",
 	)
+	asJsonBytes := []byte(asJsonString)
 
 	if err := json.Unmarshal(asJsonBytes, &valuer); err != nil {
 		return err

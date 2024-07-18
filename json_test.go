@@ -39,6 +39,7 @@ a name
 a name
 
 a name`),
+			Entry("multiline strings with carriage return", "\r\na name\r\n"),
 		)
 
 		When("is as null", func() {
