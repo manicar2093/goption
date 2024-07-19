@@ -10,40 +10,13 @@ import (
 
 func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 	var (
-		valuer struct {
-			Value string `json:"value"`
-		}
+		asString = string(data)
 	)
-	asJsonString := strings.ReplaceAll(
-		strings.ReplaceAll(
-			fmt.Sprintf(`{"value": %s}`, data),
-			"\n",
-			"\\n",
-		),
-		"\r",
-		"\\r",
-	)
-	asJsonBytes := []byte(asJsonString)
-
-	if err := json.Unmarshal(asJsonBytes, &valuer); err != nil {
-		return err
+	if strings.Contains(asString, "\"") {
+		return c.stringUnmarshall(asString)
 	}
 
-	if valuer.Value == "null" {
-		valuer.Value = ""
-	}
-
-	c.isValidValue = getIsValidDataBool(valuer.Value)
-	if c.isValidValue {
-		if err := json.Unmarshal(
-			[]byte(strconv.Quote(valuer.Value)),
-			&c.value,
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return c.numberUnmarshal(asString)
 }
 
 func (c Optional[T]) MarshalJSON() ([]byte, error) {
@@ -51,4 +24,58 @@ func (c Optional[T]) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return json.Marshal(c.value)
+}
+
+func isNull(data string) bool {
+	return data == "null"
+}
+
+func (c *Optional[T]) stringUnmarshall(data string) error {
+	var (
+		valuer struct {
+			Value string `json:"value"`
+		}
+		cleanables = []struct {
+			find        string
+			replacement string
+		}{
+			{find: "\n", replacement: "\\n"},
+			{find: "\r", replacement: "\\r"},
+		}
+		asJsonString = fmt.Sprintf(`{"value": %s}`, data)
+	)
+	for _, item := range cleanables {
+		asJsonString = strings.ReplaceAll(asJsonString, item.find, item.replacement)
+	}
+
+	if err := json.Unmarshal([]byte(asJsonString), &valuer); err != nil {
+		return err
+	}
+
+	if isNull(valuer.Value) {
+		valuer.Value = ""
+	}
+
+	c.isValidValue = getIsValidDataBool(valuer.Value)
+
+	return c.unmarshallIntoValueIfValid([]byte(strconv.Quote(valuer.Value)))
+}
+
+func (c *Optional[T]) numberUnmarshal(data string) error {
+	if isNull(data) {
+		data = ""
+	}
+
+	c.isValidValue = getIsValidDataBool(data)
+	return c.unmarshallIntoValueIfValid([]byte(data))
+}
+
+func (c *Optional[T]) unmarshallIntoValueIfValid(data []byte) error {
+	if !c.isValidValue {
+		return nil
+	}
+	return json.Unmarshal(
+		[]byte(data),
+		&c.value,
+	)
 }

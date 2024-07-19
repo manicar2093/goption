@@ -16,17 +16,47 @@ type ExampleStuct struct {
 	Age      goption.Optional[int]    `json:"age"`
 }
 
+func asJsonString(v any) string {
+	return fmt.Sprintf(
+		`"%v"`,
+		v,
+	)
+}
+
 var _ = Describe("Json", func() {
 
 	Describe("UnmarshalJSON", func() {
 
-		DescribeTable("generates optional from json string", func(expectedNameData string) {
+		It("generates optional from json number", func() {
 			var (
-				jsonData = []byte(fmt.Sprintf(
-					`"%v"`,
-					expectedNameData,
-				))
-				holder = goption.Empty[string]()
+				expectedNameData       = 10000
+				expectedNameDataString = "10000"
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[int]()
+			)
+			err := holder.UnmarshalJSON(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
+		It("generates optional from json float", func() {
+			var (
+				expectedNameData       = 100.00
+				expectedNameDataString = "100.00"
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[float64]()
+			)
+			err := holder.UnmarshalJSON(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
+		DescribeTable("generates optional from json string", func(expectedNameData any) {
+			var (
+				jsonData = []byte(asJsonString(expectedNameData))
+				holder   = goption.Empty[string]()
 			)
 			err := holder.UnmarshalJSON(jsonData)
 
