@@ -1,3 +1,9 @@
+## v0.8.5 (2024-07-19)
+
+### Fix
+
+- add handling for numbers and floats
+
 ## v0.8.4 (2024-07-18)
 
 ### Fix
