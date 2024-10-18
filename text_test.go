@@ -8,7 +8,7 @@ import (
 
 var _ = Describe("Text", func() {
 	Describe("UnmarshalText", func() {
-		It("float type", func() {
+		It("int type", func() {
 			var (
 				expectedNameData       = 100
 				expectedNameDataString = "100"
@@ -19,6 +19,44 @@ var _ = Describe("Text", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
+		It("float type", func() {
+			var (
+				expectedNameData       = 100.00
+				expectedNameDataString = "100.00"
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[float64]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
+		It("string type", func() {
+			var (
+				expectedNameData       = "hello"
+				expectedNameDataString = "hello"
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[string]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
+		It("empty string type", func() {
+			var (
+				expectedNameDataString = ""
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[string]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.IsPresent()).To(BeFalse())
 		})
 	})
 })
