@@ -19,7 +19,7 @@ func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 	return c.numberUnmarshal(asString)
 }
 
-func (c Optional[T]) MarshalJSON() ([]byte, error) {
+func (c *Optional[T]) MarshalJSON() ([]byte, error) {
 	if reflect.ValueOf(c.value).IsZero() {
 		return []byte("null"), nil
 	}
