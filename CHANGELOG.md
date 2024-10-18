@@ -1,3 +1,14 @@
+## v0.9.0 (2024-10-18)
+
+### Feat
+
+- add new way to identify strings and numbers for unmarshalText
+- add unmarshalText with tests
+
+### Fix
+
+- change unmarshalText implementation
+
 ## v0.8.5 (2024-07-19)
 
 ### Fix
