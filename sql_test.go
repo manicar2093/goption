@@ -20,6 +20,15 @@ type Activity struct {
 	Description goption.Optional[string]    `json:"description"`
 }
 
+type WithScan struct {
+	data int
+}
+
+func (c *WithScan) Scan(src any) error {
+	c.data = src.(int)
+	return nil
+}
+
 var _ = Describe("Sql", func() {
 
 	It("works on db", Label("Integration"), func() {
@@ -142,6 +151,16 @@ var _ = Describe("Sql", func() {
 
 				Expect(opt.Scan(400)).To(Succeed())
 				Expect(opt.IsPresent()).To(BeTrue())
+			})
+		})
+
+		When("data implements its own scan method", func() {
+			It("calls it to do transform", func() {
+				opt := goption.Empty[WithScan]()
+
+				Expect(opt.Scan(400)).To(Succeed())
+				Expect(opt.IsPresent()).To(BeTrue())
+				Expect(opt.MustGet().data).To(Equal(400))
 			})
 		})
 	})
