@@ -1,3 +1,10 @@
+## v0.9.1 (2024-11-06)
+
+### Fix
+
+- add sql valuer implementation
+- add call of scan method if implemented
+
 ## v0.9.0 (2024-10-18)
 
 ### Feat
