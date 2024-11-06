@@ -2,6 +2,7 @@ package goption_test
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"log"
 	"os"
@@ -18,6 +19,19 @@ type Activity struct {
 	ID          goption.Optional[int64]     `json:"id"`
 	Time        goption.Optional[time.Time] `json:"time"`
 	Description goption.Optional[string]    `json:"description"`
+}
+
+type WithScan struct {
+	data int
+}
+
+func (c *WithScan) Scan(src any) error {
+	c.data = src.(int)
+	return nil
+}
+
+func (c WithScan) Value() (driver.Value, error) {
+	return c.data, nil
 }
 
 var _ = Describe("Sql", func() {
@@ -144,6 +158,16 @@ var _ = Describe("Sql", func() {
 				Expect(opt.IsPresent()).To(BeTrue())
 			})
 		})
+
+		When("data implements its own scan method", func() {
+			It("calls it to do transform", func() {
+				opt := goption.Empty[WithScan]()
+
+				Expect(opt.Scan(400)).To(Succeed())
+				Expect(opt.IsPresent()).To(BeTrue())
+				Expect(opt.MustGet().data).To(Equal(400))
+			})
+		})
 	})
 
 	Describe("Value", func() {
@@ -166,6 +190,17 @@ var _ = Describe("Sql", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(got).ToNot(BeNil())
+			})
+		})
+
+		When("data implements its own value method", func() {
+			It("calls it to do transform", func() {
+				var opt = goption.Of(WithScan{data: 300})
+
+				got, err := opt.Value()
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(got.(int)).To(Equal(opt.MustGet().data))
 			})
 		})
 	})

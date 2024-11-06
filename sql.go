@@ -1,6 +1,7 @@
 package goption
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -27,21 +28,41 @@ import (
 func (c *Optional[T]) Scan(src any) error {
 	srcValue, isSrcValid := isValidData(src)
 	c.isValidValue = isSrcValid
-	if isSrcValid {
-		destType := reflect.TypeOf(c.value)
-		if !srcValue.Type().ConvertibleTo(destType) {
-			return fmt.Errorf("interface conversion: interface {} is %s, not %s", srcValue.Type(), destType)
-		}
+	if !isSrcValid {
+		return nil
+	}
 
+	destType := reflect.TypeOf(c.value)
+	if srcValue.Type().ConvertibleTo(destType) {
 		c.value = srcValue.Convert(destType).Interface().(T)
 		return nil
 	}
-	return nil
+
+	destTypeP := reflect.TypeOf(&c.value)
+	scannerType := reflect.TypeOf((*sql.Scanner)(nil))
+	if destTypeP.Implements(scannerType.Elem()) {
+		var s T
+		if asScanner, ok := interface{}(&s).(sql.Scanner); ok {
+			if err := asScanner.Scan(src); err != nil {
+				return err
+			}
+			c.value = s
+			return nil
+		}
+	}
+
+	return fmt.Errorf("interface conversion: interface {} is %s, not %s nor implements sql.Scanner", srcValue.Type(), destType)
 }
 
+// Value returns a driver Value.
+// Value must not panic.
 func (c Optional[T]) Value() (driver.Value, error) {
 	if !c.isValidValue {
 		return nil, nil
+	}
+
+	if asValuer, ok := interface{}(&c.value).(driver.Valuer); ok {
+		return asValuer.Value()
 	}
 	return c.value, nil
 
