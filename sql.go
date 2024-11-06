@@ -54,9 +54,15 @@ func (c *Optional[T]) Scan(src any) error {
 	return fmt.Errorf("interface conversion: interface {} is %s, not %s nor implements sql.Scanner", srcValue.Type(), destType)
 }
 
+// Value returns a driver Value.
+// Value must not panic.
 func (c Optional[T]) Value() (driver.Value, error) {
 	if !c.isValidValue {
 		return nil, nil
+	}
+
+	if asValuer, ok := interface{}(&c.value).(driver.Valuer); ok {
+		return asValuer.Value()
 	}
 	return c.value, nil
 

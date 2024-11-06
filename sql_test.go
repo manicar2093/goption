@@ -2,6 +2,7 @@ package goption_test
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"log"
 	"os"
@@ -27,6 +28,10 @@ type WithScan struct {
 func (c *WithScan) Scan(src any) error {
 	c.data = src.(int)
 	return nil
+}
+
+func (c WithScan) Value() (driver.Value, error) {
+	return c.data, nil
 }
 
 var _ = Describe("Sql", func() {
@@ -185,6 +190,17 @@ var _ = Describe("Sql", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(got).ToNot(BeNil())
+			})
+		})
+
+		When("data implements its own value method", func() {
+			It("calls it to do transform", func() {
+				var opt = goption.Of(WithScan{data: 300})
+
+				got, err := opt.Value()
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(got.(int)).To(Equal(opt.MustGet().data))
 			})
 		})
 	})
