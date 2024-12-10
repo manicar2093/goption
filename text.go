@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Optional[T]) UnmarshalText(text []byte) error {
-	does, err := regexp.Match(`\d`, text)
+	does, err := regexp.Match(`^\d+(\.\d+)?$`, text)
 	if err != nil {
 		return err
 	}
