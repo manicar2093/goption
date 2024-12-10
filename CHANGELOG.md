@@ -1,3 +1,9 @@
+## v0.9.2 (2024-12-10)
+
+### Fix
+
+- change regrex to identify uuid
+
 ## v0.9.1 (2024-11-06)
 
 ### Fix
