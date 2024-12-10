@@ -47,6 +47,19 @@ var _ = Describe("Text", func() {
 			Expect(holder.Get()).To(Equal(expectedNameData))
 		})
 
+		It("uuid type", func() {
+			var (
+				expectedNameData       = "1e2dd2c6-364b-4171-a906-554754eda276"
+				expectedNameDataString = "1e2dd2c6-364b-4171-a906-554754eda276"
+				jsonData               = []byte(expectedNameDataString)
+				holder                 = goption.Empty[string]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal(expectedNameData))
+		})
+
 		It("empty string type", func() {
 			var (
 				expectedNameDataString = ""
