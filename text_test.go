@@ -60,6 +60,42 @@ var _ = Describe("Text", func() {
 			Expect(holder.Get()).To(Equal(expectedNameData))
 		})
 
+		It("slice type", func() {
+			var (
+				expectedNameData = `["hello", "world"]`
+				jsonData         = []byte(expectedNameData)
+				holder           = goption.Empty[[]string]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal([]string{"hello", "world"}))
+		})
+
+		It("slices objects type", func() {
+			type test struct {
+				Name string `json:"name"`
+				Age  int    `json:"age"`
+			}
+			var (
+				expectedNameData = `[{"name":"hello","age":20},{"name":"hello2","age":30}]`
+				jsonData         = []byte(expectedNameData)
+				holder           = goption.Empty[[]test]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.Get()).To(Equal([]test{
+				{
+					Name: "hello",
+					Age:  20,
+				}, {
+					Name: "hello2",
+					Age:  30,
+				},
+			}))
+		})
+
 		It("empty string type", func() {
 			var (
 				expectedNameDataString = ""

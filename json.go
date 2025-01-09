@@ -12,7 +12,7 @@ func (c *Optional[T]) UnmarshalJSON(data []byte) error {
 	var (
 		asString = string(data)
 	)
-	if strings.Contains(asString, "\"") {
+	if strings.HasPrefix(asString, "\"") {
 		return c.stringUnmarshall(asString)
 	}
 
