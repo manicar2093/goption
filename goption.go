@@ -62,6 +62,16 @@ func (c Optional[T]) MustGet() T {
 	return val
 }
 
+// IsZero returns true if the Optional is empty or contains a zero value.
+// This method is used by the encoding/json package to determine if a field should be omitted.
+func (c Optional[T]) IsZero() bool {
+	if !c.isValidValue {
+		return true
+	}
+	val, is := isValidData(c.value)
+	return !is || val.IsZero()
+}
+
 func isValidData[T any](value T) (reflect.Value, bool) {
 	typeOfValue := reflect.TypeOf(value)
 	if typeOfValue == nil {

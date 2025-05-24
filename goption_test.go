@@ -188,3 +188,37 @@ var _ = Describe("Goption", func() {
 	})
 
 })
+
+var _ = Describe("IsZero", func() {
+	It("should return true for empty optional", func() {
+		Expect(goption.Empty[any]().IsZero()).To(BeTrue())
+	})
+
+	It("should return true for optional with nil", func() {
+		Expect(goption.Of[any](nil).IsZero()).To(BeTrue())
+	})
+
+	It("should return true for optional with zero string", func() {
+		Expect(goption.Of[string]("").IsZero()).To(BeTrue())
+	})
+
+	It("should return true for optional with zero int", func() {
+		Expect(goption.Of[int](0).IsZero()).To(BeTrue())
+	})
+
+	It("should return false for optional with non-zero string", func() {
+		Expect(goption.Of[string]("hello").IsZero()).To(BeFalse())
+	})
+
+	It("should return false for optional with non-zero int", func() {
+		Expect(goption.Of[int](42).IsZero()).To(BeFalse())
+	})
+
+	It("should return true for optional with empty slice", func() {
+		Expect(goption.Of[[]int]([]int{}).IsZero()).To(BeTrue())
+	})
+
+	It("should return false for optional with non-empty slice", func() {
+		Expect(goption.Of[[]int]([]int{1, 2, 3}).IsZero()).To(BeFalse())
+	})
+})
