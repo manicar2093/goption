@@ -63,7 +63,7 @@ var _ = Describe("Goption", func() {
 	Describe("IsPresent", func() {
 		DescribeTable("identify if optional has a valid data", func(expectedValue interface{}, isPresent bool) {
 			got := goption.Of(expectedValue)
-			
+
 			Expect(got.IsPresent()).To(Equal(isPresent))
 			Expect(got.IsZero()).To(Equal(!isPresent))
 		},
