@@ -1,3 +1,9 @@
+## v0.10.0 (2025-06-03)
+
+### Feat
+
+- add is zero implementation for go 1.24
+
 ## v0.9.3 (2025-01-09)
 
 ### Fix
