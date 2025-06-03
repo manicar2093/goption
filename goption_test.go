@@ -18,6 +18,7 @@ var _ = Describe("Goption", func() {
 	Describe("Empty", func() {
 		It("creates an empty Optional", func() {
 			got := goption.Empty[string]()
+
 			Expect(got.IsPresent()).To(BeFalse())
 			Expect(got.IsZero()).To(BeTrue())
 		})
@@ -62,6 +63,7 @@ var _ = Describe("Goption", func() {
 	Describe("IsPresent", func() {
 		DescribeTable("identify if optional has a valid data", func(expectedValue interface{}, isPresent bool) {
 			got := goption.Of(expectedValue)
+			
 			Expect(got.IsPresent()).To(Equal(isPresent))
 			Expect(got.IsZero()).To(Equal(!isPresent))
 		},
