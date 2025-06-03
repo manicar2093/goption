@@ -2,8 +2,6 @@ package goption_test
 
 import (
 	"errors"
-	"log"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -19,19 +17,19 @@ var _ = Describe("Goption", func() {
 
 	Describe("Empty", func() {
 		It("creates an empty Optional", func() {
-			Expect(func() {
-				got := goption.Empty[string]()
-				log.Println(got)
-			}).ToNot(Panic())
+			got := goption.Empty[string]()
+
+			Expect(got.IsPresent()).To(BeFalse())
+			Expect(got.IsZero()).To(BeTrue())
 		})
 	})
 
 	Describe("Of", func() {
-
 		DescribeTable("creates an Optional with given data", func(expectedValue interface{}) {
-			Expect(func() {
-				goption.Of(expectedValue)
-			}).ToNot(Panic())
+			got := goption.Of(expectedValue)
+
+			Expect(got.IsPresent()).To(BeTrue())
+			Expect(got.IsZero()).To(BeFalse())
 		},
 			Entry("no pointer string value", "hello"),
 			Entry("no pointer int value", int(6)),
@@ -64,7 +62,10 @@ var _ = Describe("Goption", func() {
 
 	Describe("IsPresent", func() {
 		DescribeTable("identify if optional has a valid data", func(expectedValue interface{}, isPresent bool) {
-			Expect(goption.Of(expectedValue).IsPresent()).To(Equal(isPresent))
+			got := goption.Of(expectedValue)
+
+			Expect(got.IsPresent()).To(Equal(isPresent))
+			Expect(got.IsZero()).To(Equal(!isPresent))
 		},
 			Entry("data is nil", nil, false),
 			Entry("filled pointer", toPointer(struct{ Name string }{Name: "name"}), true),
