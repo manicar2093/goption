@@ -56,8 +56,20 @@ func (c *Optional[T]) stringUnmarshall(data string) error {
 		valuer.Value = ""
 	}
 
-	c.isValidValue = getIsValidDataBool(valuer.Value)
+	if reflect.ValueOf(c.value).Kind() == reflect.Bool {
+		boolVal := false
+		switch valuer.Value {
+		case "true", "1", "on", "yes":
+			boolVal = true
+			valuer.Value = "true"
+		case "false", "0", "off", "no":
+			valuer.Value = "false"
+		}
+		c.isValidValue = getIsValidDataBool(boolVal)
+		return c.unmarshallIntoValueIfValid([]byte(valuer.Value))
+	}
 
+	c.isValidValue = getIsValidDataBool(valuer.Value)
 	return c.unmarshallIntoValueIfValid([]byte(strconv.Quote(valuer.Value)))
 }
 
@@ -75,7 +87,7 @@ func (c *Optional[T]) unmarshallIntoValueIfValid(data []byte) error {
 		return nil
 	}
 	return json.Unmarshal(
-		[]byte(data),
+		data,
 		&c.value,
 	)
 }
