@@ -31,6 +31,7 @@ var _ = Describe("Goption", func() {
 			Expect(got.IsPresent()).To(BeTrue())
 			Expect(got.IsZero()).To(BeFalse())
 		},
+			Entry("no pointer bool value", true),
 			Entry("no pointer string value", "hello"),
 			Entry("no pointer int value", int(6)),
 			Entry("no pointer int8 value", int8(6)),
@@ -44,6 +45,7 @@ var _ = Describe("Goption", func() {
 			Entry("no pointer complex64 value", complex64(6)),
 			Entry("no pointer complex128 value", complex128(6)),
 			Entry("no pointer struct value", struct{ Name string }{Name: "name"}),
+			Entry("pointer bool value", toPointer(true)),
 			Entry("pointer string value", toPointer("hello")),
 			Entry("pointer int value", toPointer(int(6))),
 			Entry("pointer int8 value", toPointer(int8(6))),

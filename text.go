@@ -9,11 +9,12 @@ import (
 func (c *Optional[T]) UnmarshalText(text []byte) error {
 	isNumber, err := regexp.Match(`^\d+(\.\d+)?$`, text)
 	isArray := bytes.HasPrefix(text, []byte("["))
-	
+
 	if err != nil {
 		return err
 	}
-	if isNumber || isArray {
+	isBool, _ := c.isValueBoolTypeAndPointer()
+	if (isNumber && !isBool) || isArray {
 		return c.UnmarshalJSON(text)
 	}
 

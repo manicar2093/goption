@@ -107,5 +107,46 @@ var _ = Describe("Text", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.IsPresent()).To(BeFalse())
 		})
+
+		Context("handle bool values from strings", func() {
+			DescribeTable("if string data is in accepted types and optional is bool", func(expectedValue string, expectedResult bool) {
+				var (
+					holder = goption.Empty[bool]()
+				)
+				err := holder.UnmarshalText([]byte(expectedValue))
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(holder.IsPresent()).To(BeTrue())
+			},
+				Entry("value true", "true", true),
+				Entry("value 1", "1", true),
+				Entry("value on", "on", true),
+				Entry("value yes", "yes", true),
+				Entry("value false", "false", false),
+				Entry("value 0", "0", false),
+				Entry("value off", "off", false),
+				Entry("value no", "no", false),
+			)
+
+			DescribeTable("if string data is in accepted types and optional is pointer bool", func(expectedValue string, expectedResult bool) {
+				var (
+					holder = goption.Empty[*bool]()
+				)
+				err := holder.UnmarshalText([]byte(expectedValue))
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(holder.IsPresent()).To(Equal(expectedResult))
+			},
+				Entry("value true", "true", true),
+				Entry("value 1", "1", true),
+				Entry("value on", "on", true),
+				Entry("value yes", "yes", true),
+				Entry("value false", "false", false),
+				Entry("value 0", "0", false),
+				Entry("value off", "off", false),
+				Entry("value no", "no", false),
+			)
+
+		})
 	})
 })
