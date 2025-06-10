@@ -116,7 +116,7 @@ var _ = Describe("Text", func() {
 				err := holder.UnmarshalText([]byte(expectedValue))
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(holder.IsPresent()).To(Equal(expectedResult))
+				Expect(holder.IsPresent()).To(BeTrue())
 			},
 				Entry("value true", "true", true),
 				Entry("value 1", "1", true),

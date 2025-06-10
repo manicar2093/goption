@@ -120,7 +120,7 @@ a name`),
 				err := holder.UnmarshalJSON([]byte(expectedValue))
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(holder.IsPresent()).To(Equal(expectedResult))
+				Expect(holder.IsPresent()).To(BeTrue())
 			},
 				Entry("value true", `"true"`, true),
 				Entry("value 1", `"1"`, true),
