@@ -47,5 +47,18 @@ type Client struct {
 }
 ```
 
+These values are taken as true:
 
-I know this is the same as if you don't use goption, but it has its useful API and is the design decision I had to make. If any please create an issue if you have a better idea for this :D
+- true
+- 1
+- on
+- yes
+
+And these other as false:
+
+- false
+- 0
+- off
+- no
+
+This is the design decision I had to make. If any please create an issue if you have a better idea for this :D
