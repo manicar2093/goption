@@ -33,6 +33,19 @@ Unfortunately `,omitempty` is not supported by now due how json.Marshal works. F
 
 _edit_: Now in Go version 1.24 [IsZero()](https://tip.golang.org/doc/go1.24#encodingjsonpkgencodingjson) function is called by encoding/json when `,omitzero` tag is set.
 
-## JSON Unmarshall
+## Boolean values
 
-There is a special use for boolen type
+There is a special use for boolean type. By default, true and false will be valid when are unmarshal from json or text. The only option to handle as invalid bool (nil) is assigning it as a pointer:
+
+```golang
+type User struct {
+	IsValid goption.Optional[*bool] // if false will be invalid
+}
+
+type Client struct {
+	IsValid goption.Optional[bool] // if false will be valid
+}
+```
+
+
+I know this is the same as if you don't use goption, but it has its useful API and is the design decision I had to make. If any please create an issue if you have a better idea for this :D
