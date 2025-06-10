@@ -3,7 +3,6 @@ package goption
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"regexp"
 )
 
@@ -14,7 +13,8 @@ func (c *Optional[T]) UnmarshalText(text []byte) error {
 	if err != nil {
 		return err
 	}
-	if (isNumber && reflect.ValueOf(c.value).Kind() != reflect.Bool) || isArray {
+	isBool, _ := c.isValueBoolTypeAndPointer()
+	if (isNumber && !isBool) || isArray {
 		return c.UnmarshalJSON(text)
 	}
 

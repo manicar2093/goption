@@ -32,3 +32,7 @@ You can use goption.Optional to sql package. Optional implements sql.Scanner and
 Unfortunately `,omitempty` is not supported by now due how json.Marshal works. For more details can see [this link](https://github.com/golang/go/issues/11939).
 
 _edit_: Now in Go version 1.24 [IsZero()](https://tip.golang.org/doc/go1.24#encodingjsonpkgencodingjson) function is called by encoding/json when `,omitzero` tag is set.
+
+## JSON Unmarshall
+
+There is a special use for boolen type
