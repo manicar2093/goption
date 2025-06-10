@@ -1,3 +1,12 @@
+## v0.11.0 (2025-06-10)
+
+### Feat
+
+- add bool pointer handler for text unmarshal
+- add bool pointer handler for json unmarshal
+- add unmarshal false bool will be always valid data
+- add string bool unmarshal in text and json
+
 ## v0.10.0 (2025-06-03)
 
 ### Feat
