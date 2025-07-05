@@ -142,6 +142,18 @@ var _ = Describe("Goption", func() {
 		})
 	})
 
+	Describe("GetValue", func() {
+		It("returns value stored in Optional", func() {
+			var (
+				opt = goption.Empty[string]()
+			)
+
+			got := opt.GetValue()
+
+			Expect(got).To(Equal(""))
+		})
+	})
+
 	Describe("Get", func() {
 		When("optional has a valida data", func() {
 			It("returns it", func() {

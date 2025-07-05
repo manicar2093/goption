@@ -66,6 +66,10 @@ func (c Optional[T]) IsZero() bool {
 	return !c.isValidValue
 }
 
+func (c Optional[T]) GetValue() T {
+	return c.value
+}
+
 func isValidData[T any](value T) (reflect.Value, bool) {
 	typeOfValue := reflect.TypeOf(value)
 	if typeOfValue == nil {
