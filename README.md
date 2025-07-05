@@ -18,6 +18,7 @@ This is a copy of [Java Optional](https://docs.oracle.com/javase/8/docs/api/java
 - Optional.IsPresent
 - Optional.OrElseError
 - Optional.OrElse
+- Optional.GetValue
 
 And others made specifically to go:
 
