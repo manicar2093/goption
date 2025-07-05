@@ -1,3 +1,9 @@
+## v0.12.0 (2025-07-05)
+
+### Feat
+
+- add GetValue method to optional
+
 ## v0.11.0 (2025-06-10)
 
 ### Feat
