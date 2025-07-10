@@ -1,3 +1,9 @@
+## v0.12.1 (2025-07-10)
+
+### Fix
+
+- add second data validation to set if optional is valid
+
 ## v0.12.0 (2025-07-05)
 
 ### Feat
