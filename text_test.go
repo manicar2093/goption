@@ -4,6 +4,7 @@ import (
 	"github.com/manicar2093/goption"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"time"
 )
 
 var _ = Describe("Text", func() {
@@ -107,6 +108,19 @@ var _ = Describe("Text", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.IsPresent()).To(BeFalse())
 		})
+
+		DescribeTable("time type", func(expectedNameDataString []byte) {
+			var holder = goption.Empty[time.Time]()
+
+			err := holder.UnmarshalText(expectedNameDataString)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.IsPresent()).To(BeFalse())
+		},
+			Entry("Zero time", []byte("0001-01-01T00:00:00Z")),
+			Entry("null time", []byte("null")),
+			Entry("empty time", []byte("")),
+		)
 
 		Context("handle bool values from strings", func() {
 			DescribeTable("if string data is in accepted types and optional is bool", func(expectedValue string, expectedResult bool) {

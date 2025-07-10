@@ -78,7 +78,11 @@ func (c *Optional[T]) stringUnmarshall(data string) error {
 	}
 
 	c.isValidValue = getIsValidDataBool(valuer.Value)
-	return c.unmarshallIntoValueIfValid([]byte(strconv.Quote(valuer.Value)))
+	if err := c.unmarshallIntoValueIfValid([]byte(strconv.Quote(valuer.Value))); err != nil {
+		return err
+	}
+	c.isValidValue = !reflect.ValueOf(c.value).IsZero()
+	return nil
 }
 
 func (c *Optional[T]) numberUnmarshal(data string) error {
