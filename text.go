@@ -7,14 +7,20 @@ import (
 )
 
 func (c *Optional[T]) UnmarshalText(text []byte) error {
+	var isString bool
+	switch any(c).(type) {
+	case Optional[string], *Optional[string]:
+		isString = true
+	}
 	isNumber, err := regexp.Match(`^\d+(\.\d+)?$`, text)
-	isArray := bytes.HasPrefix(text, []byte("["))
-
 	if err != nil {
 		return err
 	}
+
+	isArray := bytes.HasPrefix(text, []byte("["))
+
 	isBool, _ := c.isValueBoolTypeAndPointer()
-	if (isNumber && !isBool) || isArray {
+	if (isNumber && !isBool) && !isString || isArray {
 		return c.UnmarshalJSON(text)
 	}
 

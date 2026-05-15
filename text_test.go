@@ -1,10 +1,11 @@
 package goption_test
 
 import (
+	"time"
+
 	"github.com/manicar2093/goption"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"time"
 )
 
 var _ = Describe("Text", func() {
@@ -161,6 +162,18 @@ var _ = Describe("Text", func() {
 				Entry("value no", "no", false),
 			)
 
+		})
+
+		It("number in text", func() {
+			var (
+				expectedNumberDataString = "5555555555"
+				jsonData                 = []byte(expectedNumberDataString)
+				holder                   = goption.Empty[string]()
+			)
+			err := holder.UnmarshalText(jsonData)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(holder.IsPresent()).To(BeTrue())
 		})
 	})
 })
