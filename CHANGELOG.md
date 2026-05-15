@@ -1,3 +1,9 @@
+## v0.12.2 (2026-05-15)
+
+### Fix
+
+- add type distinction for number and string unmarshal in text.go
+
 ## v0.12.1 (2025-07-10)
 
 ### Fix
