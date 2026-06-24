@@ -1,3 +1,9 @@
+## v0.13.0 (2026-06-24)
+
+### Feat
+
+- add New function to create an optional
+
 ## v0.12.2 (2026-05-15)
 
 ### Fix
