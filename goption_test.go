@@ -2,6 +2,7 @@ package goption_test
 
 import (
 	"errors"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -14,6 +15,15 @@ func toPointer[T any](value T) *T {
 }
 
 var _ = Describe("Goption", func() {
+
+	Describe("New", func() {
+		It("creates an optional with given data and its not empty by default", func() {
+			got := goption.New[bool](false)
+
+			Expect(got.IsPresent()).To(BeTrue())
+			Expect(got.IsZero()).To(BeFalse())
+		})
+	})
 
 	Describe("Empty", func() {
 		It("creates an empty Optional", func() {

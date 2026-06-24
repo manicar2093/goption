@@ -14,6 +14,11 @@ type Optional[T any] struct {
 	isValidValue bool
 }
 
+// New returns an Optional with the specified value. It does not matter if the value is zero, it will be considered as present
+func New[T any](value T) Optional[T] {
+	return Optional[T]{value: value, isValidValue: true}
+}
+
 // Empty returns an empty Optional instance.
 func Empty[T any]() Optional[T] {
 	return Optional[T]{}
