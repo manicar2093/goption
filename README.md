@@ -1,5 +1,7 @@
 # Goption
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/manicar2093/goption)
+
 ![goption](goption.png "Goption")
 
 A way to handle nil values.
