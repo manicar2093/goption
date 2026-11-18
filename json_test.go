@@ -2,7 +2,6 @@ package goption_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/manicar2093/goption"
@@ -10,17 +9,39 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type ExampleStuct struct {
+type ExampleStruct struct {
 	Name     goption.Optional[string] `json:"name"`
 	LastName goption.Optional[string] `json:"last_name,omitempty"`
 	Age      goption.Optional[int]    `json:"age"`
 }
 
+type UserPayload struct {
+	Username goption.Optional[string] `json:"username,omitempty"`
+	Bio      goption.Optional[string] `json:"bio,omitempty"`
+	Age      goption.Optional[int]    `json:"age,omitempty"`
+	Active   goption.Optional[bool]   `json:"active,omitempty"`
+}
+
+type UserPayloadZero struct {
+	Username goption.Zero[string] `json:"username,omitempty"`
+	Bio      goption.Zero[string] `json:"bio,omitempty"`
+	Age      goption.Zero[int]    `json:"age,omitempty"`
+	Active   goption.Zero[bool]   `json:"active,omitempty"`
+}
+
+type OmitZeroStruct struct {
+	Title goption.Optional[string] `json:"title,omitzero"`
+	Count goption.Optional[int]    `json:"count,omitzero"`
+}
+
+type OmitZeroStructZero struct {
+	Title goption.Zero[string] `json:"title,omitzero"`
+	Count goption.Zero[int]    `json:"count,omitzero"`
+}
+
 func asJsonString(v any) string {
-	return fmt.Sprintf(
-		`"%v"`,
-		v,
-	)
+	b, _ := json.Marshal(v)
+	return string(b)
 }
 
 var _ = Describe("Json", func() {
@@ -29,81 +50,81 @@ var _ = Describe("Json", func() {
 
 		It("generates optional from json number", func() {
 			var (
-				expectedNameData       = 10000
-				expectedNameDataString = "10000"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[int]()
+				expectedData       = 10000
+				expectedDataString = "10000"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[int]
 			)
 			err := holder.UnmarshalJSON(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		It("generates optional from json float", func() {
 			var (
-				expectedNameData       = 100.00
-				expectedNameDataString = "100.00"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[float64]()
+				expectedData       = 100.00
+				expectedDataString = "100.00"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[float64]
 			)
 			err := holder.UnmarshalJSON(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		DescribeTable("generates optional from json string", func(expectedNameData any) {
 			var (
 				jsonData = []byte(asJsonString(expectedNameData))
-				holder   = goption.Empty[string]()
+				holder   goption.Optional[string]
 			)
 			err := holder.UnmarshalJSON(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedNameData))
 		},
 			Entry("one line string", "a name"),
-			Entry("multiline strings", `a name
-a name
-a name
-
-a name`),
+			Entry("multiline strings", "a name\na name\na name\n\na name"),
 			Entry("multiline strings with carriage return", "\r\na name\r\n"),
 		)
 
-		When("is as null", func() {
-			DescribeTable("creates an empty optional", func(jsonData []byte) {
-				var (
-					holder = goption.Empty[string]()
-				)
-				err := holder.UnmarshalJSON(jsonData)
+		When("is null", func() {
+			It("creates an empty optional from literal null", func() {
+				var holder = goption.Some("initial")
+				err := holder.UnmarshalJSON([]byte(`null`))
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(holder.IsPresent()).To(BeFalse())
-			},
-				Entry("null as string", []byte(`"null"`)),
-				Entry("native null", []byte(`null`)),
-			)
+			})
 
 			It("handles custom types", func() {
 				type testType time.Time
-				var (
-					holder = goption.Empty[testType]()
-				)
-				err := holder.UnmarshalJSON([]byte(`"null"`))
+				var holder goption.Optional[testType]
+				err := holder.UnmarshalJSON([]byte(`null`))
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(holder.IsPresent()).To(BeFalse())
 			})
-
 		})
 
-		When("is zero", func() {
-			It("creates an empty optional", func() {
+		When("is zero value in JSON", func() {
+			It("Optional[string] keeps empty string as valid present", func() {
 				var (
 					jsonData = []byte(`""`)
-					holder   = goption.Empty[string]()
+					holder   goption.Optional[string]
+				)
+				err := holder.UnmarshalJSON(jsonData)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(holder.IsPresent()).To(BeTrue())
+				Expect(holder.MustGet()).To(Equal(""))
+			})
+
+			It("Zero[string] marks empty string as absent", func() {
+				var (
+					jsonData = []byte(`""`)
+					holder   goption.Zero[string]
 				)
 				err := holder.UnmarshalJSON(jsonData)
 
@@ -112,108 +133,166 @@ a name`),
 			})
 		})
 
-		Context("handle bool values from strings", func() {
-			DescribeTable("if string data is in accepted types and optional is bool", func(expectedValue string, expectedResult bool) {
-				var (
-					holder = goption.Empty[bool]()
-				)
-				err := holder.UnmarshalJSON([]byte(expectedValue))
+		Context("Unmarshal structs with omitted vs null vs zero fields", func() {
+			It("unmarshals partial JSON with omitted fields", func() {
+				// bio and age are completely omitted from JSON
+				jsonData := []byte(`{"username":"john_doe","active":false}`)
 
+				var payload UserPayload
+				err := json.Unmarshal(jsonData, &payload)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(holder.IsPresent()).To(BeTrue())
-			},
-				Entry("value true", `"true"`, true),
-				Entry("value 1", `"1"`, true),
-				Entry("value on", `"on"`, true),
-				Entry("value yes", `"yes"`, true),
-				Entry("value false", `"false"`, false),
-				Entry("value 0", `"0"`, false),
-				Entry("value off", `"off"`, false),
-				Entry("value no", `"no"`, false),
-			)
 
-			DescribeTable("if string data is in accepted types and optional is pointer bool", func(expectedValue string, expectedResult bool) {
-				var (
-					holder = goption.Empty[*bool]()
-				)
-				err := holder.UnmarshalJSON([]byte(expectedValue))
+				// username was present
+				Expect(payload.Username.IsPresent()).To(BeTrue())
+				Expect(payload.Username.MustGet()).To(Equal("john_doe"))
 
+				// active was present with zero value (false)
+				Expect(payload.Active.IsPresent()).To(BeTrue())
+				Expect(payload.Active.MustGet()).To(Equal(false))
+
+				// bio and age were omitted -> invalid/absent
+				Expect(payload.Bio.IsPresent()).To(BeFalse())
+				Expect(payload.Age.IsPresent()).To(BeFalse())
+			})
+
+			It("unmarshals explicit null vs zero value for Optional[T]", func() {
+				jsonData := []byte(`{"username":"","bio":null,"age":0}`)
+
+				var payload UserPayload
+				err := json.Unmarshal(jsonData, &payload)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(holder.IsPresent()).To(Equal(expectedResult))
-			},
-				Entry("value true", `"true"`, true),
-				Entry("value 1", `"1"`, true),
-				Entry("value on", `"on"`, true),
-				Entry("value yes", `"yes"`, true),
-				Entry("value false", `"false"`, false),
-				Entry("value 0", `"0"`, false),
-				Entry("value off", `"off"`, false),
-				Entry("value no", `"no"`, false),
-			)
+
+				// username is valid empty string
+				Expect(payload.Username.IsPresent()).To(BeTrue())
+				Expect(payload.Username.MustGet()).To(Equal(""))
+
+				// bio is explicit null
+				Expect(payload.Bio.IsPresent()).To(BeFalse())
+
+				// age is valid 0
+				Expect(payload.Age.IsPresent()).To(BeTrue())
+				Expect(payload.Age.MustGet()).To(Equal(0))
+			})
+
+			It("unmarshals explicit null vs zero value for Zero[T]", func() {
+				jsonData := []byte(`{"username":"alice","bio":"","age":0}`)
+
+				var payload UserPayloadZero
+				err := json.Unmarshal(jsonData, &payload)
+				Expect(err).ToNot(HaveOccurred())
+
+				// username is non-zero string -> present
+				Expect(payload.Username.IsPresent()).To(BeTrue())
+				Expect(payload.Username.MustGet()).To(Equal("alice"))
+
+				// bio is zero string -> absent in Zero[T]
+				Expect(payload.Bio.IsPresent()).To(BeFalse())
+
+				// age is 0 -> absent in Zero[T]
+				Expect(payload.Age.IsPresent()).To(BeFalse())
+			})
 		})
 	})
 
-	Describe("MarshalJson", func() {
-		It("creates json from optional", func() {
-			var (
-				expectedValue    = "my name"
-				expectedJson     = `"my name"`
-				expectedOptional = goption.Of(expectedValue)
-			)
+	Describe("MarshalJSON", func() {
+		It("creates json from valid Optional", func() {
+			expectedOptional := goption.Some("my name")
 
 			got, err := json.Marshal(expectedOptional)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(got)).To(Equal(expectedJson))
+			Expect(string(got)).To(Equal(`"my name"`))
 		})
 
 		It("creates json when optional is in a struct", func() {
-			var (
-				expectedName     = "expectedName"
-				expectedLastName = "expectedLastName"
-				expectedAge      = 40
-				expectedStruct   = ExampleStuct{
-					Name:     goption.Of(expectedName),
-					LastName: goption.Of(expectedLastName),
-					Age:      goption.Of(expectedAge),
-				}
-			)
+			expectedStruct := ExampleStruct{
+				Name:     goption.Some("expectedName"),
+				LastName: goption.Some("expectedLastName"),
+				Age:      goption.Some(40),
+			}
 
 			got, err := json.Marshal(expectedStruct)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(got).To(
-				MatchJSON(
-					fmt.Sprintf(`{"name":"%v",
-			"last_name":"%v",
-			"age":%v}`, expectedName, expectedLastName, expectedAge),
-				),
+				MatchJSON(`{"name":"expectedName","last_name":"expectedLastName","age":40}`),
 			)
 		})
 
-		When("optional has omitempty in a struct", func() {
-			It("send it as null in json", func() {
-				var (
-					expectedName   = "expectedName"
-					expectedAge    = 40
-					expectedStruct = ExampleStuct{
-						Name: goption.Of(expectedName),
-						Age:  goption.Of(expectedAge),
-					}
-				)
+		Context("JSON tags: omitempty behavior", func() {
+			It("marshals invalid Optional fields tagged with omitempty as null", func() {
+				payload := UserPayload{
+					Username: goption.Some("john"),
+					// Bio is uninitialized (invalid Optional)
+					Age: goption.Some(0), // zero value
+				}
 
-				got, err := json.Marshal(expectedStruct)
-
+				got, err := json.Marshal(payload)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(got).To(
-					MatchJSON(
-						fmt.Sprintf(`{"name":"%v",
-						"last_name":null,
-				"age":%v}`, expectedName, expectedAge),
-					),
-				)
+
+				Expect(got).To(MatchJSON(`{
+					"username": "john",
+					"bio": null,
+					"age": 0,
+					"active": null
+				}`))
+			})
+
+			It("marshals Zero fields with omitempty as null when absent/zero", func() {
+				payload := UserPayloadZero{
+					Username: goption.SomeZero("john"),
+					Bio:      goption.SomeZero(""), // zero value -> absent
+					Age:      goption.SomeZero(0),  // zero value -> absent
+				}
+
+				got, err := json.Marshal(payload)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(got).To(MatchJSON(`{
+					"username": "john",
+					"bio": null,
+					"age": null,
+					"active": null
+				}`))
+			})
+		})
+
+		Context("JSON tags: omitzero (Go 1.24+) behavior via IsZero()", func() {
+			It("omits invalid Optional fields when tagged with omitzero", func() {
+				payload := OmitZeroStruct{
+					Title: goption.Some("Hello"),
+					// Count is uninitialized (IsZero() == true)
+				}
+
+				got, err := json.Marshal(payload)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(got).To(MatchJSON(`{"title":"Hello"}`))
+			})
+
+			It("preserves zero values in Optional fields when tagged with omitzero", func() {
+				payload := OmitZeroStruct{
+					Title: goption.Some(""), // valid zero string (IsZero() == false)
+					Count: goption.Some(0),  // valid zero int (IsZero() == false)
+				}
+
+				got, err := json.Marshal(payload)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(got).To(MatchJSON(`{"title":"","count":0}`))
+			})
+
+			It("omits empty/zero fields in Zero[T] when tagged with omitzero", func() {
+				payload := OmitZeroStructZero{
+					Title: goption.SomeZero(""), // zero string -> IsZero() == true
+					Count: goption.SomeZero(25), // non-zero int -> IsZero() == false
+				}
+
+				got, err := json.Marshal(payload)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(got).To(MatchJSON(`{"count":25}`))
 			})
 		})
 	})
-
 })

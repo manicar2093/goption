@@ -1,117 +1,57 @@
 package goption
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
-	"reflect"
-	"strconv"
-	"strings"
 )
 
-func (c *Optional[T]) UnmarshalJSON(data []byte) error {
-	var (
-		asString = string(data)
-	)
-	if strings.HasPrefix(asString, "\"") {
-		return c.stringUnmarshall(asString)
-	}
-
-	return c.numberUnmarshal(asString)
-}
-
-func (c Optional[T]) MarshalJSON() ([]byte, error) {
-	if reflect.ValueOf(c.value).IsZero() {
+// MarshalJSON implements json.Marshaler for Optional[T].
+// It returns "null" if the value is invalid/null, or serializes the contained value.
+func (o Optional[T]) MarshalJSON() ([]byte, error) {
+	if !o.valid {
 		return []byte("null"), nil
 	}
-	return json.Marshal(c.value)
+	return json.Marshal(o.value)
 }
 
-func isNull(data string) bool {
-	return data == "null"
-}
-
-func (c *Optional[T]) stringUnmarshall(data string) error {
-	var (
-		valuer struct {
-			Value string `json:"value"`
-		}
-		cleanables = []struct {
-			find        string
-			replacement string
-		}{
-			{find: "\n", replacement: "\\n"},
-			{find: "\r", replacement: "\\r"},
-		}
-		asJsonString = fmt.Sprintf(`{"value": %s}`, data)
-	)
-	for _, item := range cleanables {
-		asJsonString = strings.ReplaceAll(asJsonString, item.find, item.replacement)
+// UnmarshalJSON implements json.Unmarshaler for Optional[T].
+// Only a literal JSON "null" marks the container invalid/absent.
+// Zero values like 0, "", false, or empty objects/arrays remain valid present values.
+func (o *Optional[T]) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		o.valid = false
+		var zero T
+		o.value = zero
+		return nil
 	}
-
-	if err := json.Unmarshal([]byte(asJsonString), &valuer); err != nil {
+	if err := json.Unmarshal(data, &o.value); err != nil {
 		return err
 	}
-
-	if isNull(valuer.Value) {
-		valuer.Value = ""
-	}
-
-	isBool, isBoolPointer := c.isValueBoolTypeAndPointer()
-
-	if isBool {
-		validableBool := false
-		switch valuer.Value {
-		case "true", "1", "on", "yes":
-			valuer.Value = "true"
-			validableBool = true
-		case "false", "0", "off", "no":
-			valuer.Value = "false"
-		}
-		if isBoolPointer {
-			c.isValidValue = getIsValidDataBool(validableBool)
-		} else {
-			c.isValidValue = getIsValidDataBool(valuer.Value)
-
-		}
-		return c.unmarshallIntoValueIfValid([]byte(valuer.Value))
-
-	}
-
-	c.isValidValue = getIsValidDataBool(valuer.Value)
-	if err := c.unmarshallIntoValueIfValid([]byte(strconv.Quote(valuer.Value))); err != nil {
-		return err
-	}
-	c.isValidValue = !reflect.ValueOf(c.value).IsZero()
+	o.valid = true
 	return nil
 }
 
-func (c *Optional[T]) numberUnmarshal(data string) error {
-	if isNull(data) {
-		data = ""
+// MarshalJSON implements json.Marshaler for Zero[T].
+// It returns "null" if the value is absent or zero, or serializes the contained value.
+func (z Zero[T]) MarshalJSON() ([]byte, error) {
+	if !z.present {
+		return []byte("null"), nil
 	}
-
-	c.isValidValue = getIsValidDataBool(data)
-	return c.unmarshallIntoValueIfValid([]byte(data))
+	return json.Marshal(z.value)
 }
 
-func (c *Optional[T]) unmarshallIntoValueIfValid(data []byte) error {
-	if !c.isValidValue {
+// UnmarshalJSON implements json.Unmarshaler for Zero[T].
+// If data is "null" or unmarshals into a zero value, present is set to false.
+func (z *Zero[T]) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		z.present = false
+		var zero T
+		z.value = zero
 		return nil
 	}
-	return json.Unmarshal(
-		data,
-		&c.value,
-	)
-}
-
-func (c Optional[T]) isValueBoolTypeAndPointer() (bool, bool) {
-	cValueKind := reflect.ValueOf(c.value).Kind()
-	if cValueKind == reflect.Bool {
-		return true, false
+	if err := json.Unmarshal(data, &z.value); err != nil {
+		return err
 	}
-	if cValueKind == reflect.Pointer && reflect.TypeOf(c.value).Elem().Kind() == reflect.Bool {
-		return true, true
-	}
-
-	return false, false
+	z.present = !isZero(z.value)
+	return nil
 }

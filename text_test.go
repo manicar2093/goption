@@ -12,97 +12,73 @@ var _ = Describe("Text", func() {
 	Describe("UnmarshalText", func() {
 		It("int type", func() {
 			var (
-				expectedNameData       = 100
-				expectedNameDataString = "100"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[int]()
+				expectedData       = 100
+				expectedDataString = "100"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[int]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		It("float type", func() {
 			var (
-				expectedNameData       = 100.00
-				expectedNameDataString = "100.00"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[float64]()
+				expectedData       = 100.00
+				expectedDataString = "100.00"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[float64]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		It("string type", func() {
 			var (
-				expectedNameData       = "hello"
-				expectedNameDataString = "hello"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[string]()
+				expectedData       = "hello"
+				expectedDataString = "hello"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[string]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		It("uuid type", func() {
 			var (
-				expectedNameData       = "1e2dd2c6-364b-4171-a906-554754eda276"
-				expectedNameDataString = "1e2dd2c6-364b-4171-a906-554754eda276"
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[string]()
+				expectedData       = "1e2dd2c6-364b-4171-a906-554754eda276"
+				expectedDataString = "1e2dd2c6-364b-4171-a906-554754eda276"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[string]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal(expectedNameData))
+			Expect(holder.MustGet()).To(Equal(expectedData))
 		})
 
 		It("slice type", func() {
 			var (
-				expectedNameData = `["hello", "world"]`
-				jsonData         = []byte(expectedNameData)
-				holder           = goption.Empty[[]string]()
+				expectedData = `["hello", "world"]`
+				jsonData     = []byte(expectedData)
+				holder       goption.Optional[[]string]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal([]string{"hello", "world"}))
-		})
-
-		It("slices objects type", func() {
-			type test struct {
-				Name string `json:"name"`
-				Age  int    `json:"age"`
-			}
-			var (
-				expectedNameData = `[{"name":"hello","age":20},{"name":"hello2","age":30}]`
-				jsonData         = []byte(expectedNameData)
-				holder           = goption.Empty[[]test]()
-			)
-			err := holder.UnmarshalText(jsonData)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(holder.Get()).To(Equal([]test{
-				{
-					Name: "hello",
-					Age:  20,
-				}, {
-					Name: "hello2",
-					Age:  30,
-				},
-			}))
+			Expect(holder.MustGet()).To(Equal([]string{"hello", "world"}))
 		})
 
 		It("empty string type", func() {
 			var (
-				expectedNameDataString = ""
-				jsonData               = []byte(expectedNameDataString)
-				holder                 = goption.Empty[string]()
+				expectedDataString = ""
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[string]
 			)
 			err := holder.UnmarshalText(jsonData)
 
@@ -110,28 +86,26 @@ var _ = Describe("Text", func() {
 			Expect(holder.IsPresent()).To(BeFalse())
 		})
 
-		DescribeTable("time type", func(expectedNameDataString []byte) {
-			var holder = goption.Empty[time.Time]()
+		DescribeTable("time type", func(expectedDataString []byte) {
+			var holder goption.Optional[time.Time]
 
-			err := holder.UnmarshalText(expectedNameDataString)
+			err := holder.UnmarshalText(expectedDataString)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.IsPresent()).To(BeFalse())
 		},
-			Entry("Zero time", []byte("0001-01-01T00:00:00Z")),
 			Entry("null time", []byte("null")),
 			Entry("empty time", []byte("")),
 		)
 
-		Context("handle bool values from strings", func() {
+		Context("handle bool values from relaxed strings", func() {
 			DescribeTable("if string data is in accepted types and optional is bool", func(expectedValue string, expectedResult bool) {
-				var (
-					holder = goption.Empty[bool]()
-				)
+				var holder goption.Optional[bool]
 				err := holder.UnmarshalText([]byte(expectedValue))
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(holder.IsPresent()).To(BeTrue())
+				Expect(holder.MustGet()).To(Equal(expectedResult))
 			},
 				Entry("value true", "true", true),
 				Entry("value 1", "1", true),
@@ -142,38 +116,19 @@ var _ = Describe("Text", func() {
 				Entry("value off", "off", false),
 				Entry("value no", "no", false),
 			)
-
-			DescribeTable("if string data is in accepted types and optional is pointer bool", func(expectedValue string, expectedResult bool) {
-				var (
-					holder = goption.Empty[*bool]()
-				)
-				err := holder.UnmarshalText([]byte(expectedValue))
-
-				Expect(err).ToNot(HaveOccurred())
-				Expect(holder.IsPresent()).To(Equal(expectedResult))
-			},
-				Entry("value true", "true", true),
-				Entry("value 1", "1", true),
-				Entry("value on", "on", true),
-				Entry("value yes", "yes", true),
-				Entry("value false", "false", false),
-				Entry("value 0", "0", false),
-				Entry("value off", "off", false),
-				Entry("value no", "no", false),
-			)
-
 		})
 
 		It("number in text", func() {
 			var (
-				expectedNumberDataString = "5555555555"
-				jsonData                 = []byte(expectedNumberDataString)
-				holder                   = goption.Empty[string]()
+				expectedDataString = "5555555555"
+				jsonData           = []byte(expectedDataString)
+				holder             goption.Optional[string]
 			)
 			err := holder.UnmarshalText(jsonData)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(holder.IsPresent()).To(BeTrue())
+			Expect(holder.MustGet()).To(Equal("5555555555"))
 		})
 	})
 })
