@@ -1,3 +1,10 @@
+## v0.13.1 (2026-11-24)
+
+### Refactor
+
+- change go version to 1.26
+- change Optional implementation and add Zero struct
+
 ## v0.13.0 (2026-06-24)
 
 ### Feat
