@@ -7,63 +7,91 @@ import (
 	"reflect"
 )
 
-// Scan assigns a value from a database driver.
-//
-// The src value will be of one of the following types:
-//
-//	int64
-//	float64
-//	bool
-//	[]byte
-//	string
-//	time.Time
-//	nil - for NULL values
-//
-// An error should be returned if the value cannot be stored
-// without loss of information.
-//
-// Reference types such as []byte are only valid until the next call to Scan
-// and should not be retained. Their underlying memory is owned by the driver.
-// If retention is necessary, copy their values before the next call to Scan.
-func (c *Optional[T]) Scan(src any) error {
-	srcValue, isSrcValid := isValidData(src)
-	c.isValidValue = isSrcValid
-	if !isSrcValid {
+// Scan implements database/sql.Scanner for Optional[T].
+// Only a nil src is treated as SQL NULL.
+func (o *Optional[T]) Scan(src any) error {
+	if src == nil {
+		o.valid = false
+		var zero T
+		o.value = zero
 		return nil
 	}
 
-	destType := reflect.TypeOf(c.value)
-	if srcValue.Type().ConvertibleTo(destType) {
-		c.value = srcValue.Convert(destType).Interface().(T)
-		return nil
-	}
-
-	destTypeP := reflect.TypeOf(&c.value)
-	scannerType := reflect.TypeOf((*sql.Scanner)(nil))
-	if destTypeP.Implements(scannerType.Elem()) {
-		var s T
-		if asScanner, ok := interface{}(&s).(sql.Scanner); ok {
-			if err := asScanner.Scan(src); err != nil {
-				return err
-			}
-			c.value = s
-			return nil
+	if scanner, ok := any(&o.value).(sql.Scanner); ok {
+		if err := scanner.Scan(src); err != nil {
+			return err
 		}
+		o.valid = true
+		return nil
 	}
 
-	return fmt.Errorf("interface conversion: interface {} is %s, not %s nor implements sql.Scanner", srcValue.Type(), destType)
+	srcVal := reflect.ValueOf(src)
+	destType := reflect.TypeOf(o.value)
+	if destType != nil && srcVal.Type().ConvertibleTo(destType) {
+		o.value = srcVal.Convert(destType).Interface().(T)
+		o.valid = true
+		return nil
+	}
+
+	if destType == nil {
+		o.valid = true
+		return nil
+	}
+
+	return fmt.Errorf("cannot scan %T into %T", src, o.value)
 }
 
-// Value returns a driver Value.
-// Value must not panic.
-func (c Optional[T]) Value() (driver.Value, error) {
-	if !c.isValidValue {
+// Value implements driver.Valuer for Optional[T].
+func (o Optional[T]) Value() (driver.Value, error) {
+	if !o.valid {
 		return nil, nil
 	}
-
-	if asValuer, ok := interface{}(&c.value).(driver.Valuer); ok {
-		return asValuer.Value()
+	if valuer, ok := any(o.value).(driver.Valuer); ok {
+		return valuer.Value()
 	}
-	return c.value, nil
+	return driver.DefaultParameterConverter.ConvertValue(o.value)
+}
 
+// Scan implements database/sql.Scanner for Zero[T].
+func (z *Zero[T]) Scan(src any) error {
+	if src == nil {
+		z.present = false
+		var zero T
+		z.value = zero
+		return nil
+	}
+
+	if scanner, ok := any(&z.value).(sql.Scanner); ok {
+		if err := scanner.Scan(src); err != nil {
+			return err
+		}
+		z.present = !isZero(z.value)
+		return nil
+	}
+
+	srcVal := reflect.ValueOf(src)
+	destType := reflect.TypeOf(z.value)
+	if destType != nil && srcVal.Type().ConvertibleTo(destType) {
+		z.value = srcVal.Convert(destType).Interface().(T)
+		z.present = !isZero(z.value)
+		return nil
+	}
+
+	if destType == nil {
+		z.present = false
+		return nil
+	}
+
+	return fmt.Errorf("cannot scan %T into %T", src, z.value)
+}
+
+// Value implements driver.Valuer for Zero[T].
+func (z Zero[T]) Value() (driver.Value, error) {
+	if !z.present {
+		return nil, nil
+	}
+	if valuer, ok := any(z.value).(driver.Valuer); ok {
+		return valuer.Value()
+	}
+	return driver.DefaultParameterConverter.ConvertValue(z.value)
 }
