@@ -41,6 +41,28 @@ func (c WithScan) Value() (driver.Value, error) {
 }
 
 var _ = Describe("Sql", func() {
+	It("preserves defined string SQL behavior", func() {
+		var opt goption.Optional[definedTextString]
+		var zero goption.Zero[definedTextString]
+		Expect(opt.Scan("hello")).To(Succeed())
+		Expect(zero.Scan("hello")).To(Succeed())
+		Expect(opt.MustGet()).To(Equal(definedTextString("hello")))
+		Expect(zero.MustGet()).To(Equal(definedTextString("hello")))
+		optValue, err := opt.Value()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(optValue).To(Equal("hello"))
+		zeroValue, err := zero.Value()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(zeroValue).To(Equal("hello"))
+		Expect(opt.Scan("")).To(Succeed())
+		Expect(zero.Scan("")).To(Succeed())
+		Expect(opt.IsPresent()).To(BeTrue())
+		Expect(zero.IsPresent()).To(BeFalse())
+		Expect(opt.Scan(nil)).To(Succeed())
+		Expect(zero.Scan(nil)).To(Succeed())
+		Expect(opt.IsPresent()).To(BeFalse())
+		Expect(zero.IsPresent()).To(BeFalse())
+	})
 
 	It("works on db for Optional[T]", Label("Integration"), func() {
 		var (

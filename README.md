@@ -242,6 +242,8 @@ type Payload struct {
 
 Most Go HTTP form and query decoders (such as `gorilla/schema` or `go-playground/form`) decode values via `encoding.TextUnmarshaler`. `goption` implements `UnmarshalText` with relaxed boolean parsing (`"on"`, `"off"`, `"yes"`, `"no"`, `"1"`, `"0"`), keeping standard JSON strict.
 
+Both wrappers support defined string, boolean, and numeric types (such as `type Name string`) in text encoding. Empty text and `null` are absent; `Zero[T]` also treats decoded zero values as absent. Custom text marshaling interfaces take precedence.
+
 ```go
 type SubscriptionForm struct {
     Email  goption.Optional[string] `schema:"email"`

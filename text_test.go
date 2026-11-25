@@ -1,6 +1,7 @@
 package goption_test
 
 import (
+	"strings"
 	"time"
 
 	"github.com/manicar2093/goption"
@@ -8,7 +9,100 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type definedTextString string
+type definedTextBool bool
+
+type customTextString string
+
+func (s customTextString) MarshalText() ([]byte, error) {
+	return []byte("custom:" + string(s)), nil
+}
+
+func (s *customTextString) UnmarshalText(text []byte) error {
+	*s = customTextString(strings.ToUpper(string(text)))
+	return nil
+}
+
 var _ = Describe("Text", func() {
+	It("handles relaxed defined boolean text and preserves presence", func() {
+		var opt goption.Optional[definedTextBool]
+		var zero goption.Zero[definedTextBool]
+		for _, tc := range []struct {
+			text  string
+			value bool
+		}{
+			{"true", true}, {"1", true}, {"on", true}, {"yes", true},
+			{"false", false}, {"0", false}, {"off", false}, {"no", false},
+			{" YES ", true}, {"  ", false},
+		} {
+			Expect(opt.UnmarshalText([]byte(tc.text))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte(tc.text))).To(Succeed())
+			Expect(opt.IsPresent()).To(BeTrue())
+			Expect(opt.MustGet()).To(Equal(definedTextBool(tc.value)))
+			Expect(zero.IsPresent()).To(Equal(tc.value))
+			optText, err := opt.MarshalText()
+			Expect(err).NotTo(HaveOccurred())
+			var roundTrip goption.Optional[definedTextBool]
+			Expect(roundTrip.UnmarshalText(optText)).To(Succeed())
+			Expect(roundTrip.MustGet()).To(Equal(definedTextBool(tc.value)))
+			zeroText, err := zero.MarshalText()
+			Expect(err).NotTo(HaveOccurred())
+			var zeroRoundTrip goption.Zero[definedTextBool]
+			Expect(zeroRoundTrip.UnmarshalText(zeroText)).To(Succeed())
+			Expect(zeroRoundTrip.IsPresent()).To(Equal(tc.value))
+		}
+		Expect(opt.UnmarshalText([]byte("invalid"))).NotTo(Succeed())
+		Expect(zero.UnmarshalText([]byte("invalid"))).NotTo(Succeed())
+		for _, input := range []string{"", "null"} {
+			Expect(opt.UnmarshalText([]byte("true"))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte("true"))).To(Succeed())
+			Expect(opt.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(opt.IsPresent()).To(BeFalse())
+			Expect(zero.IsPresent()).To(BeFalse())
+		}
+	})
+
+	It("round trips defined strings and clears absent inputs", func() {
+		var opt goption.Optional[definedTextString]
+		var zero goption.Zero[definedTextString]
+		for _, input := range []string{"hello", "555"} {
+			Expect(opt.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(opt.MustGet()).To(Equal(definedTextString(input)))
+			Expect(zero.MustGet()).To(Equal(definedTextString(input)))
+			optText, err := opt.MarshalText()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(optText)).To(Equal(input))
+			zeroText, err := zero.MarshalText()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(zeroText)).To(Equal(input))
+		}
+		for _, input := range []string{"", "null"} {
+			Expect(opt.UnmarshalText([]byte("hello"))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte("hello"))).To(Succeed())
+			Expect(opt.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(zero.UnmarshalText([]byte(input))).To(Succeed())
+			Expect(opt.IsPresent()).To(BeFalse())
+			Expect(zero.IsPresent()).To(BeFalse())
+		}
+	})
+
+	It("prefers custom text interfaces for defined strings", func() {
+		var opt goption.Optional[customTextString]
+		var zero goption.Zero[customTextString]
+		Expect(opt.UnmarshalText([]byte("hello"))).To(Succeed())
+		Expect(zero.UnmarshalText([]byte("hello"))).To(Succeed())
+		Expect(opt.MustGet()).To(Equal(customTextString("HELLO")))
+		Expect(zero.MustGet()).To(Equal(customTextString("HELLO")))
+		optText, err := opt.MarshalText()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(optText)).To(Equal("custom:HELLO"))
+		zeroText, err := zero.MarshalText()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(zeroText)).To(Equal("custom:HELLO"))
+	})
+
 	Describe("UnmarshalText", func() {
 		It("int type", func() {
 			var (
