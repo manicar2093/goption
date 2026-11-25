@@ -1,3 +1,9 @@
+## v0.14.0 (2026-11-25)
+
+### Feat
+
+- add support for string and bool types
+
 ## v0.13.1 (2026-11-24)
 
 ### Refactor
