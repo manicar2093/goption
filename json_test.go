@@ -45,6 +45,28 @@ func asJsonString(v any) string {
 }
 
 var _ = Describe("Json", func() {
+	It("preserves defined string JSON behavior", func() {
+		var opt goption.Optional[definedTextString]
+		var zero goption.Zero[definedTextString]
+		Expect(json.Unmarshal([]byte(`"hello"`), &opt)).To(Succeed())
+		Expect(json.Unmarshal([]byte(`"hello"`), &zero)).To(Succeed())
+		Expect(opt.MustGet()).To(Equal(definedTextString("hello")))
+		Expect(zero.MustGet()).To(Equal(definedTextString("hello")))
+		optJSON, err := json.Marshal(opt)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(optJSON)).To(Equal(`"hello"`))
+		zeroJSON, err := json.Marshal(zero)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(zeroJSON)).To(Equal(`"hello"`))
+		Expect(json.Unmarshal([]byte(`""`), &opt)).To(Succeed())
+		Expect(json.Unmarshal([]byte(`""`), &zero)).To(Succeed())
+		Expect(opt.IsPresent()).To(BeTrue())
+		Expect(zero.IsPresent()).To(BeFalse())
+		Expect(json.Unmarshal([]byte(`null`), &opt)).To(Succeed())
+		Expect(json.Unmarshal([]byte(`null`), &zero)).To(Succeed())
+		Expect(opt.IsPresent()).To(BeFalse())
+		Expect(zero.IsPresent()).To(BeFalse())
+	})
 
 	Describe("UnmarshalJSON", func() {
 

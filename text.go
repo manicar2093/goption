@@ -48,16 +48,6 @@ func (o *Optional[T]) UnmarshalText(text []byte) error {
 		return nil
 	}
 
-	// Handle boolean parsing with relaxed form support
-	if _, ok := any(o.value).(bool); ok {
-		b, err := parseRelaxedBool(str)
-		if err != nil {
-			return err
-		}
-		o.value = any(b).(T)
-		o.valid = true
-		return nil
-	}
 	if _, ok := any(o.value).(*bool); ok {
 		b, err := parseRelaxedBool(str)
 		if err != nil {
@@ -68,16 +58,21 @@ func (o *Optional[T]) UnmarshalText(text []byte) error {
 		return nil
 	}
 
-	// Handle string
-	if _, ok := any(o.value).(string); ok {
-		o.value = any(str).(T)
-		o.valid = true
-		return nil
-	}
-
-	// Handle numbers
+	// Handle primitive values
 	v := reflect.ValueOf(&o.value).Elem()
 	switch v.Kind() {
+	case reflect.Bool:
+		b, err := parseRelaxedBool(str)
+		if err != nil {
+			return err
+		}
+		v.SetBool(b)
+		o.valid = true
+		return nil
+	case reflect.String:
+		v.SetString(str)
+		o.valid = true
+		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
@@ -136,15 +131,6 @@ func (z *Zero[T]) UnmarshalText(text []byte) error {
 		return nil
 	}
 
-	if _, ok := any(z.value).(bool); ok {
-		b, err := parseRelaxedBool(str)
-		if err != nil {
-			return err
-		}
-		z.value = any(b).(T)
-		z.present = !isZero(z.value)
-		return nil
-	}
 	if _, ok := any(z.value).(*bool); ok {
 		b, err := parseRelaxedBool(str)
 		if err != nil {
@@ -155,14 +141,20 @@ func (z *Zero[T]) UnmarshalText(text []byte) error {
 		return nil
 	}
 
-	if _, ok := any(z.value).(string); ok {
-		z.value = any(str).(T)
-		z.present = !isZero(z.value)
-		return nil
-	}
-
 	v := reflect.ValueOf(&z.value).Elem()
 	switch v.Kind() {
+	case reflect.Bool:
+		b, err := parseRelaxedBool(str)
+		if err != nil {
+			return err
+		}
+		v.SetBool(b)
+		z.present = !isZero(z.value)
+		return nil
+	case reflect.String:
+		v.SetString(str)
+		z.present = !isZero(z.value)
+		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
